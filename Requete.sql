@@ -35,3 +35,66 @@ INNER JOIN produits p ON l.id_produit = l.id_produit;
 --Lister toutes les commandes dont le statut est PAID ou SHIPPED.
 SELECT * FROM commandes
 WHERE commande_status IN ('PAID','SHIPPED')
+
+
+--Afficher le détail complet de chaque commande avec :
+	--date de commande,
+	--nom du client,
+	--liste des produits,
+	--quantité,
+	--prix unitaire facturé,
+	--montant total de la ligne (quantité × prix unitaire).
+SELECT c.commande_date,cl.client_nom,STRING_AGG(p.produit_nom || ' (' || l.ligne_quantité || ' x ' || l.ligne_prix || '€ = ' || (l.ligne_quantité * l.ligne_prix) || '€)', ', '
+    ) AS produits_detail,
+    SUM(l.ligne_quantité * l.ligne_prix) AS total_commande
+FROM commandes c
+INNER JOIN clients cl ON c.id_client = cl.id_client
+INNER JOIN lignes_commandes l ON l.id_commande = c.id_commande
+INNER JOIN produits p ON l.id_produit = p.id_produit
+GROUP BY c.id_commande, c.commande_date, cl.client_nom
+ORDER BY c.commande_date;
+
+--Calculer le montant total de chaque commande et afficher uniquement :
+	--l’ID de la commande,
+	--le nom du client,
+	--le montant total de la commande.
+SELECT c.id_commande,cl.client_nom,SUM(l.ligne_quantité * l.ligne_prix) FROM commandes c
+INNER JOIN clients cl ON c.id_client = cl.id_client
+INNER JOIN lignes_commandes l on c.id_commande = l.id_commande
+GROUP BY c.id_commande,cl.client_nom
+
+--Afficher les commandes dont le montant total dépasse 100 €.
+SELECT * FROM commandes c
+WHERE 100 < (SELECT SUM(l.ligne_quantité * l.ligne_prix) from lignes_commandes l
+WHERE c.id_commande = l.id_commande)
+
+--Lister les catégories avec leur chiffre d’affaires total (somme du montant des lignes sur tous les produits de cette catégorie).
+SELECT c.categorie_nom,SUM(p.produit_prix) FROM lignes_commandes l
+INNER JOIN produits p ON l.id_produit = p.id_produit
+INNER JOIN categories c ON p.id_categorie = c.id_categorie
+GROUP BY p.id_categorie,c.categorie_nom
+
+--Lister les produits qui ont été vendus au moins une fois.
+SELECT * FROM produits p 
+WHERE p.id_produit IN (SELECT l.id_produit FROM lignes_commandes l)
+
+--Lister les produits qui n’ont jamais été vendus.
+SELECT * FROM produits p 
+WHERE p.id_produit NOT IN (SELECT l.id_produit FROM lignes_commandes l)
+
+--Trouver le client qui a dépensé le plus (TOP 1 en chiffre d’affaires cumulé).
+SELECT cl.client_nom,SUM(l.ligne_quantité * l.ligne_prix) FROM commandes c
+INNER JOIN clients cl ON c.id_client = cl.id_client
+INNER JOIN lignes_commandes l on c.id_commande = l.id_commande
+GROUP BY cl.client_nom
+ORDER BY SUM(l.ligne_quantité * l.ligne_prix) DESC
+FETCH FIRST 1 ROW ONLY
+
+--Afficher les 3 produits les plus vendus en termes de quantité totale.
+SELECT * FROM produits p
+INNER JOIN lignes_commandes l ON l.id_produit = p.id_produit
+GROUP BY p.id_produit,l.id_ligne
+ORDER BY SUM(l.ligne_quantité) DESC
+
+--Lister les commandes dont le montant total est strictement supérieur à la moyenne de toutes les commandes.SELECT * FROM commandes c
+
