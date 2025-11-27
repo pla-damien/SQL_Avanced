@@ -124,3 +124,44 @@ INNER JOIN lignes_commandes l ON l.id_commande = c.id_commande
 GROUP BY DATE_PART('month',c.commande_date)
 
 --Formater les montants pour n’afficher que deux décimales.
+
+--Pour chaque commande, afficher :
+
+	--l’ID de la commande,
+	--le client,
+	--la date,
+	--le statut,
+	--une version “lisible” du statut en français via CASE :
+
+		--PAID → “Payée”
+		--SHIPPED → “Expédiée”
+		--PENDING → “En attente”
+		--CANCELLED → “Annulée”
+SELECT c.id_commande,cl.client_nom,c.commande_date,
+CASE WHEN c.commande_status = 'PAID' THEN 'Payés'
+	WHEN c.commande_status = 'SHIPPED' THEN 'Expédiée'	
+	WHEN c.commande_status = 'PENDING' THEN 'En attente'	
+	WHEN c.commande_status = 'CANCELLED' THEN 'Annulée'	
+END
+FROM commandes c
+INNER JOIN clients cl ON c.id_client = cl.id_client	
+
+--Pour chaque client, calculer le montant total dépensé et le classer en segments :
+
+	--< 100 € → “Bronze”
+	--100–300 € → “Argent”
+	--> 300 € → “Or”
+	--Afficher : prénom, nom, montant total, segment.
+
+SELECT cl.client_nom,cl.client_prenom,SUM(l.ligne_quantité * l.ligne_prix),
+CASE WHEN SUM(l.ligne_quantité * l.ligne_prix) < 100 THEN 'Bronze'	
+	WHEN SUM(l.ligne_quantité * l.ligne_prix) BETWEEN 100 AND 300 THEN 'Argent'
+	WHEN SUM(l.ligne_quantité * l.ligne_prix) > 300 THEN 'Or'
+END
+FROM commandes c
+INNER JOIN clients cl ON c.id_client = cl.id_client
+INNER JOIN lignes_commandes l on c.id_commande = l.id_commande
+GROUP BY cl.client_nom,cl.client_prenom
+
+
+
