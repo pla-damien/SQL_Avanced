@@ -20,7 +20,7 @@ CREATE TABLE categories(
 
 CREATE TABLE commandes(
    id_commande SERIAL PRIMARY KEY,
-   commande_date DATE NOT NULL,
+   commande_date DATE NOT NULL  ,
    commande_status VARCHAR(255) NOT NULL CHECK(commande_status IN ('PENDING','PAID','SHIPPED','CANCELLED')),
    id_client INT NOT NULL,
    CONSTRAINT fk_id_client FOREIGN KEY(id_client) REFERENCES clients(id_client)
