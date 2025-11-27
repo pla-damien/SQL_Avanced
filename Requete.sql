@@ -95,6 +95,32 @@ SELECT * FROM produits p
 INNER JOIN lignes_commandes l ON l.id_produit = p.id_produit
 GROUP BY p.id_produit,l.id_ligne
 ORDER BY SUM(l.ligne_quantité) DESC
+FETCH FIRST 3 ROW ONLY;
 
 --Lister les commandes dont le montant total est strictement supérieur à la moyenne de toutes les commandes.SELECT * FROM commandes c
+SELECT c1.id_commande,SUM(l.ligne_prix) FROM commandes c1
+INNER JOIN lignes_commandes l ON c1.id_commande = l.id_commande
+GROUP BY c1.id_commande
+HAVING SUM(l.ligne_prix) > (SELECT AVG(ligne_prix) from lignes_commandes);
 
+--Calculer le chiffre d’affaires total (toutes commandes confondues, hors commandes annulées si souhaité).
+SELECT sum(l.ligne_prix * l.ligne_quantité) FROM lignes_commandes l
+INNER JOIN commandes c on c.id_commande = l.id_commande  
+WHERE c.commande_status <> 'CANCELLED'
+
+--Calculer le panier moyen (montant moyen par commande).
+SELECT AVG(l.ligne_prix * l.ligne_quantité) from lignes_commandes l
+
+
+--Calculer la quantité totale vendue par catégorie.
+SELECT c.categorie_nom ,SUM(l.ligne_quantité) FROM lignes_commandes l
+INNER JOIN produits p  ON p.id_produit = l.id_produit
+INNER JOIN categories c ON c.id_categorie = p.id_categorie
+GROUP BY  c.categorie_nom
+
+--Calculer le chiffre d’affaires par mois (au moins sur les données fournies).
+SELECT DATE_PART('month',c.commande_date),SUM(l.ligne_quantité * l.ligne_prix) FROM commandes c 
+INNER JOIN lignes_commandes l ON l.id_commande = c.id_commande
+GROUP BY DATE_PART('month',c.commande_date)
+
+--Formater les montants pour n’afficher que deux décimales.
