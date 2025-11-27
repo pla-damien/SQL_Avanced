@@ -164,4 +164,44 @@ INNER JOIN lignes_commandes l on c.id_commande = l.id_commande
 GROUP BY cl.client_nom,cl.client_prenom
 
 
+--Proposer et écrire 5 requêtes d’analyse avancées supplémentaires parmi, par exemple :
+--Top 5 des clients les plus actifs (nombre de commandes).
+SELECT cl.client_nom,count(c.id_commande) FROM clients cl
+INNER JOIN commandes c ON c.id_client = cl.id_client
+group by cl.client_nom
+ORDER BY count(c.id_commande) DESC
+FETCH FIRST 5 ROW ONLY;
 
+--Top 5 des clients qui ont dépensé le plus (CA total).
+SELECT cl.client_nom,SUM(l.ligne_quantité * l.ligne_prix) FROM commandes c
+INNER JOIN clients cl ON c.id_client = cl.id_client
+INNER JOIN lignes_commandes l on c.id_commande = l.id_commande
+GROUP BY cl.client_nom
+ORDER BY SUM(l.ligne_quantité * l.ligne_prix) DESC
+FETCH FIRST 5 ROW ONLY;
+
+--Les 3 catégories les plus rentables (CA total).
+SELECT c.categorie_nom ,SUM(l.ligne_quantité* l.ligne_prix) FROM lignes_commandes l
+INNER JOIN produits p  ON p.id_produit = l.id_produit
+INNER JOIN categories c ON c.id_categorie = p.id_categorie
+GROUP BY  c.categorie_nom
+ORDER BY SUM(l.ligne_quantité* l.ligne_prix) DESC
+FETCH FIRST 5 ROW ONLY;
+
+--Les produits qui ont généré au total moins de 10 € de CA.
+SELECT p.produit_nom,SUM(l.ligne_quantité* l.ligne_prix) FROM produits p 
+INNER JOIN lignes_commandes l ON l.id_produit = p.id_produit
+GROUP BY p.produit_nom
+HAVING SUM(l.ligne_quantité* l.ligne_prix) < 10
+
+--Les clients n’ayant passé qu’une seule commande.
+SELECT cl.client_nom,count(c.id_commande) FROM clients cl
+INNER JOIN commandes c ON c.id_client = cl.id_client
+group by cl.client_nom
+HAVING count(c.id_commande) = 1
+
+--Les produits présents dans des commandes annulées, avec le montant “perdu”.
+SELECT p.produit_nom,(l.ligne_prix*l.ligne_quantité) FROM lignes_commandes l
+INNER JOIN commandes c ON c.id_commande = l.id_commande
+INNER JOIN produits p  ON p.id_produit = l.id_produit
+WHERE c.commande_status = 'CANCELLED'
