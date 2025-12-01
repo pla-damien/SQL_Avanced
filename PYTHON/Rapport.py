@@ -1,8 +1,10 @@
 import psycopg
 import os
 
-os.remove("rapport.Txt")
-DNS = "dbname=postgres user=postgres password=secret host=localhost port=5432"
+if os.path.exists("rapport.Txt"):
+    os.remove("rapport.Txt")
+
+DNS = "dbname=supershop user=admin password=admin host=localhost port=5432"
 
 def write_rapport(chaine):
     with open("rapport.txt","a") as f:

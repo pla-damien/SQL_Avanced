@@ -69,7 +69,6 @@ WHERE count >= 2
 
 --5. Données à jour vs vues matérialisées
 --On simule maintenant l’arrivée de nouvelles données dans le système :
-
 --Une nouvelle commande complétée est enregistrée pour le client 2 :
 
 INSERT INTO orders (order_id, customer_id, order_date, status)
